@@ -5,8 +5,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Formacion- Primer Taller - jdbc
@@ -16,9 +14,6 @@ import java.util.List;
  */
 public class App {
 
-	/** Lista para agrupar tablas */
-	public static final List<String> listaTablas = new ArrayList<>();
-
 	/**
 	 * Método principal
 	 * 
@@ -26,30 +21,29 @@ public class App {
 	 */
 	public static void main(String[] args) {
 
-		// Llamada al método conexion a la BBDD
-		getMetaData();
-		// Consuta a la BBDD nttdata_mysql_soccer_player
+		// Consuta a la BBDD nttdata_mysql_soccer_player (Información adicional)
 		runQueryInfoPlayers();
 
 	}
 
 	/**
-	 * Metodo de conexión a la BBDD - nttdata_jdbc_ex Mostrar información por tablas
+	 * Metodo de conexión a la BBDD - nttdata_jdbc_ex - mostrar informacion por
+	 * tablas
 	 */
-	private static void getMetaData() {
+	private static Connection getConectionInfoTables() {
 
 		// Inicialización de variables
 		String url = "jdbc:mysql://localhost/nttdata_jdbc_ex";
+		url += "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 		String user = "root";
 		String password = "root";
+		Connection dbConection = null;
 
-		try (Connection dbConection = DriverManager.getConnection(url, user, password)) {
+		try {
+			dbConection = DriverManager.getConnection(url, user, password);
+
 			DatabaseMetaData dbmd = dbConection.getMetaData();
 			ResultSet resul = null;
-			dbmd.getDatabaseProductName();
-			dbmd.getDriverName();
-			dbmd.getURL();
-			dbmd.getUserName();
 			String[] types = { "TABLE" };
 
 			// Obtener información de las tablas
@@ -64,19 +58,24 @@ public class App {
 				String table = resul.getString("TABLE_NAME");
 				// TYPE
 				String type = resul.getString("TABLE_TYPE");
-				listaTablas.add(table);
 				System.out.println("Catalogo: " + catalog + " Esquema: " + schema + " Tabla: " + table
 						+ " Tipo de estructura: " + type);
 
 			}
 			// Cierre
 			resul.close();
-
 		} catch (SQLException ex) {
 			System.out.println("Algun error se ha producido");
 		} finally {
-			System.out.println("Close Conection");
+			System.out.println("Final");
 		}
+
+		// Lanzamiento de excepción NullPointer cuando la BBDD sea nula
+		if (dbConection == null) {
+			throw new NullPointerException("Datos incorrectos");
+		}
+
+		return dbConection;
 
 	}
 
@@ -86,25 +85,7 @@ public class App {
 
 	private static void runQueryInfoPlayers() {
 
-		// Inicialización de variables
-
-		String url = "jdbc:mysql://localhost/nttdata_jdbc_ex";
-		url += "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
-		String user = "root";
-		String password = "root";
-		Connection dbConection = null;
-
-		try {
-			dbConection = DriverManager.getConnection(url, user, password);
-		} catch (SQLException e) {
-
-			e.printStackTrace();
-		}
-
-		// Lanzamiento de excepción NullPointer cuando la BBDD sea nula
-		if (dbConection == null) {
-			throw new NullPointerException("Datos incorrectos");
-		}
+		Connection dbConection = getConectionInfoTables();
 
 		try (java.sql.Statement sentencia = dbConection.createStatement()) {
 
@@ -127,7 +108,7 @@ public class App {
 			System.out.println("Algun error se ha producido");
 
 		} finally {
-			System.out.println("Close Conection");
+			System.out.println("Final");
 		}
 	}
 }
